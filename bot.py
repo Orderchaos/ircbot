@@ -7,13 +7,15 @@ import socket, re, subprocess, os, time, threading, sys
 server = "" # Server
 channel = "" # Channel
 botnick = "" # Your bots nick
+password = ""
 lines = 0
+#regexes = [".*"]
+#combined = "(" + ")|(".join(regexes) + ")"
 ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# connect to the server using the port 6667
-ircsock.connect((server, 6667)) 
+ircsock.connect((server, 6667)) # Here we connect to the server using the port 6667
 ircsock.send("USER "+ botnick +" "+ botnick +" "+ botnick + " " + botnick + "\n") # user authentication
 ircsock.send("NICK "+ botnick +"\n") # assign the nick to the bot
-ircsock.send("nickserv identify " + password + " \r\n")
+ircsock.send("nickserv identify " + password + "\r\n")
 def ping(): # respond to server Pings.
   ircsock.send("PONG :pingis\n")  
 
@@ -128,8 +130,8 @@ def regex(msg):
   checksend(name,found, replaced, findme)
 
 # log chat messages
-def logger(msg):
-  # open existing chat log and read in the content.
+def logger(name, msg):
+  # loop through the content of the chat log and reduce to 100 lines, starting with oldest. --Definitely a better way to do this, needs improvement.
   irclog = open("ircchat.log", 'r')
   content = irclog.readlines()
   irclog.close()
@@ -137,13 +139,11 @@ def logger(msg):
   irclog = open("ircchat.log", "w")
   while len(content) > 100:
     content.remove(content[0])
-  for i in content:
-    if i[0] != ':':
+  if len(content) > 0:
+    for i in content:
       irclog.write(i.strip('\n\r') + '\n')
-    if len(i.strip('\n\r')) == 0:
-      irclog.write(":delete\n")
   # write newest messge to log.
-  irclog.write(msg.strip('\n\r') + '\n')
+  irclog.write(name + ':' + msg.strip('\n\r'))
   irclog.close()
 
 # checks messages from find/replace before sending to the channel.
@@ -167,7 +167,7 @@ def checksend(name,orig,new,pattern=''):
   # if message isn't caught by one of the checks, send to channel and log the message.
   message="Correction, <" + name + ">: " + new
   sendmsg(message.strip('\r\n'))
-  logger(name + ':' +  new)
+  logger(name, new)
 
 # send help message to users
 def help(name,topic=''):
@@ -205,35 +205,25 @@ def main():
       ping()
     # look for PRIVMSG lines as these are messages in the channel or sent to the bot
     if ircmsg.find("PRIVMSG") != -1:
-      # split the message on the first two ':' to get the user and message in separate areas. --Currently does not work with IPv6. Needs rework.
-      splitmsg=ircmsg.split(':',2)
       # save user name into name variable
-      name=ircmsg.split('!',1)[0][1:]
+      name = ircmsg.split('!',1)[0][1:]
+      print('name: ' + name)
+      # get the message to look for commands
+      message = ircmsg.split('PRIVMSG',1)[1].split(':',1)[1]
+      print(message)
       # look for commands and send to appropriate function.
-      if splitmsg[2][:2] == 's|':
-        regex(ircmsg)
-      elif splitmsg[2][:2] == 's/':
-        sed(ircmsg)
-      elif splitmsg[2][:5] == '.help':
-        help(name,splitmsg[2][5:])
+      if message[:2] == 's|':
+        regex(message)
+      elif message[:2] == 's/':
+        sed(message)
+      elif message[:5] == '.help':
+        help(name,message[5:])
       else:
       # if no command found, get 
-        name=ircmsg.split('!')
-        finalname=name[0][1:]
-        combo=""
-        # hacky method to properly log ':' in messages. Needs rework.
-        privmsgfound = "false"
-        for combine in splitmsg[1:]:
-          if privmsgfound != "false":
-            combo=combo + ":" + combine
-          if combine.find("PRIVMSG") != -1:
-            privmsgfound = "true"
-        # if the parsed user name is longer than 17 characters it's not a valid username so don't log the message.
-        if len(finalname) < 17:
-          final=finalname+combo
-          logger(final)
+        if len(name) < 17:
+          logger(name, message)
           # if the final message is from me and says 'gtfo [bot]' stop the bot and exit. Needs adjustment so it works for main user account and not hardcoded username.
-          if final.find("OrderChaos:gtfo %s" % botnick) != -1:
+          if name.lower() == "orderchaos" and message[:5+len(botnick)] == "gtfo %s" % botnick:
             sendmsg("Oh...okay... :'(")
             ircsock.send("PART " + channel + "\r\n")
             sys.exit()
