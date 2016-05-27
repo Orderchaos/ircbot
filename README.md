@@ -9,8 +9,8 @@ This is very much an alpha build with just basic functionality enabled and littl
 Recommended to run with screen or tmux as bot currently runs in foreground.  
 
 How to setup:  
-Download the bot.py file.  
-Edit the file and fill out the variables at the top per the comments.  
+1. Download the bot.py file.  
+2. Edit the file and fill out the variables at the top per the comments.  
 Example:  
 server = "chat.freenode.net" # Server  
 channel = "##MyTestChan" # Channel  
