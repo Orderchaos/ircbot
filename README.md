@@ -13,11 +13,8 @@ Download the bot.py file.
 Edit the file and fill out the variables at the top per the comments.
 Example:
   server = "chat.freenode.net" # Server
-  
   channel = "##MyTestChan" # Channel
-  
   botnick = "BotTestNick" # Your bots nick
-  
   password = "Hunter2"
   
 
