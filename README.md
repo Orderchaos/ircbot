@@ -13,15 +13,24 @@ Download the bot.py file.
 Edit the file and fill out the variables at the top per the comments.
 Example:
   server = "chat.freenode.net" # Server
+  
   channel = "##MyTestChan" # Channel
+  
   botnick = "BotTestNick" # Your bots nick
+  
   password = "Hunter2"
+  
 
 Usage (loosely) follows sed conventions:
+
   Messages in the format of 's/[find]/[replace]' are processed for basic find and replace with ''.
+  
   For example, if I said "taht is funny" and wanted to correct it, I would type "s/ah/ha" and the bot would reply with "Correction <OrderChaos>: that is funny"
+  
   Messages in the format of 's|[find]|[replace]' are processed for regex find and replace.
+  
   For example, if I said "That's awesome!1!1!" and wanted to replace the 1s, I would type "s|\d|!" and the bot would reply with "Correction <OrderChaos>: That's awesome!!!!!"
+  
 
 A few things to note:
   1) All replaces are global.
